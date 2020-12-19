@@ -620,10 +620,10 @@ public class MecanumWheelDriver implements Runnable {
          * TargetDeg, the degree with which to find the offset
          * Finds the angle between current degree and the target degree
          * returns a value between -180 and 180
-         * output will be negative if the current degree is left of the target, positive if on the right
-         *    0
-         * 90   -90
-         *   180
+         * output will be negative if the target degree is right, positive if on the left
+         *     x
+         * -90   90
+         *    180
          */
 
         double offset = TargetDeg - DegCurrent;

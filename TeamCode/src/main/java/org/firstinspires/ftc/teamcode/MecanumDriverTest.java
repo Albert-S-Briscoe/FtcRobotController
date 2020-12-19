@@ -131,12 +131,7 @@ public class MecanumDriverTest extends LinearOpMode {
             if (!gamepad1.dpad_right) {
                 is_dpad_right_button = false;
             }
-
-            if (gamepad1.left_bumper) {
-                drive.H.grab(true);
-            } else if (gamepad1.right_bumper) {
-                drive.H.grab(false);
-            }
+            
 
             if (gamepad1.start) {
                 drive.setRampDown(1, 0);

@@ -51,7 +51,7 @@ public class TestProgram extends LinearOpMode {
         
         waitForStart();
         runtime.reset();
-        H.launcherServo.setPosition(0.02);
+        H.launchServo.setPosition(0.02);
         
         while (opModeIsActive()) {
             
@@ -60,9 +60,9 @@ public class TestProgram extends LinearOpMode {
             if (gamepad1.a) {
         
                 if (!button[0]) {
-                    H.launcherServo.setPosition(0.17);
+                    H.launchServo.setPosition(0.17);
                     sleep(100);
-                    H.launcherServo.setPosition(0.02);
+                    H.launchServo.setPosition(0.02);
                     button[0] = true;
             
                 }
@@ -92,17 +92,17 @@ public class TestProgram extends LinearOpMode {
         
                 if (!button[2]) {
     
-                    H.launcherServo.setPosition(0.17);
+                    H.launchServo.setPosition(0.17);
                     sleep(100);
-                    H.launcherServo.setPosition(0.02);
+                    H.launchServo.setPosition(0.02);
                     sleep(120);
-                    H.launcherServo.setPosition(0.17);
+                    H.launchServo.setPosition(0.17);
                     sleep(100);
-                    H.launcherServo.setPosition(0.02);
+                    H.launchServo.setPosition(0.02);
                     sleep(120);
-                    H.launcherServo.setPosition(0.17);
+                    H.launchServo.setPosition(0.17);
                     sleep(100);
-                    H.launcherServo.setPosition(0.02);
+                    H.launchServo.setPosition(0.02);
                     sleep(120);
                     button[2] = true;
             

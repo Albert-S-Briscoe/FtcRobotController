@@ -25,10 +25,10 @@ public class SWEET_drive_system {
     
     SWEET_drive_system(RobotHardware H) {
         this.H = H;
-        wheel[0] = new Wheel(1,1, H.driveMotor[0], H.driveServo[0], H.driveAngle[0]);
-        wheel[1] = new Wheel(-1,1, H.driveMotor[1], H.driveServo[1], H.driveAngle[1]);
-        wheel[2] = new Wheel(-1, -1, H.driveMotor[2], H.driveServo[2], H.driveAngle[2]);
-        wheel[3] = new Wheel(1,-1, H.driveMotor[3], H.driveServo[3], H.driveAngle[3]);
+        //wheel[0] = new Wheel(1,1, H.driveMotor[0], H.driveServo[0], H.driveAngle[0]);
+        //wheel[1] = new Wheel(-1,1, H.driveMotor[1], H.driveServo[1], H.driveAngle[1]);
+        //wheel[2] = new Wheel(-1, -1, H.driveMotor[2], H.driveServo[2], H.driveAngle[2]);
+        //wheel[3] = new Wheel(1,-1, H.driveMotor[3], H.driveServo[3], H.driveAngle[3]);
     }
     
     void moveArc(double power, double angle, double rotatePower, double angleForwards) {
