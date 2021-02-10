@@ -2,9 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,10 +13,10 @@ import java.util.concurrent.Executors;
 @TeleOp(name="TeleOp", group="Linear Opmode")
 public class TeleOpV1 extends LinearOpMode {
     
-    private boolean[] button = {false, false, false, false, false};
-    // 0 = half speed, 1 = compass, 2 = POV, 3 = launcher, 4 = launch
-    private boolean[] toggle = {false, true, false, false};
-    // 0 = half speed, 1 = compass, 2 = POV, 3 = launcher
+    private boolean[] button = {false, false, false, false, false, false, false};
+    // 0 = half speed, 1 = compass, 2 = POV, 3 = launcher, 4 = collecting, 5 = reverse, 6 = launch
+    private boolean[] toggle = {false, true, false, false, false, false};
+    // 0 = half speed, 1 = compass, 2 = POV, 3 = launcher, 4 = collecting, 5 = reverse
     
     RobotHardware H = new RobotHardware();
     
@@ -30,6 +31,7 @@ public class TeleOpV1 extends LinearOpMode {
         ElapsedTime runtime = new ElapsedTime();
         ExecutorService pool = Executors.newFixedThreadPool(1);
         H.init(hardwareMap);
+        AimBot aimBot = new AimBot(H, drive, pool, this);
         
         ////////////////////////////// Init Variables //////////////////////////////
         
@@ -58,6 +60,10 @@ public class TeleOpV1 extends LinearOpMode {
     
         double launchStartTime = 0;
         
+        Float[] pos;
+        
+        drive.moveDone = false;
+        
         waitForStart();
         runtime.reset();
         
@@ -85,7 +91,7 @@ public class TeleOpV1 extends LinearOpMode {
                 
             }
             
-            radius = exponentialScaling(Range.clip(Math.hypot(x, y), -1, 1));
+            radius = exponentialScaling(Range.clip(Math.hypot(x, y), 0, 1));
             
             stickTotal = radius + Math.abs(rotate);
             angle = Math.atan2(y, x) + Math.toRadians(agl_frwd - heading - 45);
@@ -135,7 +141,7 @@ public class TeleOpV1 extends LinearOpMode {
             
             ////////////////////////////// Buttons //////////////////////////////
             
-            toggleButton(gamepad1.left_bumper | gamepad1.left_stick_button, 0); // half speed
+            toggleButton(gamepad1.left_stick_button, 0); // half speed
             
             toggleButton(gamepad1.y, 1); // compass
             
@@ -153,16 +159,38 @@ public class TeleOpV1 extends LinearOpMode {
             
             toggleButton(gamepad1.right_bumper || gamepad1.b, 3); // launcher
             
-            launcherLive(toggle[3]);
-    
-            if (gamepad1.right_trigger > 0.25 || gamepad1.a) {
-                if (!button[4] || runtime.seconds() > launchStartTime + H.LAUNCH_REPEAT_DELAY) {
-                    launchStartTime = runtime.seconds();
-                    launch();
-                    button[4] = true;
+            toggleButton(gamepad1.left_trigger > 0.25, 4);
+            
+            toggleButton(gamepad1.left_bumper, 5);
+            
+            if (toggle[4]) {
+                if (toggle[5]) {
+                    H.collectorMotor.setPower(-1);
+                } else {
+                    H.collectorMotor.setPower(1);
                 }
             } else {
-                button[4] = false;
+                H.collectorMotor.setPower(0);
+                toggle[5] = false;
+            }
+    
+            if (gamepad1.a) {
+                if (!button[6] || runtime.seconds() > launchStartTime + H.LAUNCH_REPEAT_DELAY) {
+                    launchStartTime = runtime.seconds();
+                    launch();
+                    button[6] = true;
+                }
+            } else {
+                button[6] = false;
+            }
+            
+            
+            
+            if (gamepad1.right_trigger > 0.25) {
+                aimBot.activate();
+            } else {
+                aimBot.disable();
+                launcherLive(toggle[3]);
             }
             
             if (gamepad1.start && stickTotal < 0.1) {
@@ -170,18 +198,23 @@ public class TeleOpV1 extends LinearOpMode {
                 agl_frwd = heading;
                 
             }
-            
-            telemetry.addData("heading", H.getheading());
+    
+            pos = aimBot.getPos();
             telemetry.addData("rotate", rotate);
             telemetry.addData("radius", radius);
-            telemetry.addData("angle", angle);
+            telemetry.addData("angle", Math.toDegrees(angle));
+            telemetry.addData("heading", H.getheading());
+            if (pos[0] != null) telemetry.addData("Pos", "X (%.1f)", pos[0]);
+            if (pos[1] != null) telemetry.addData("Pos", "Y (%.1f)", pos[1]);
+            telemetry.addData("Ranges", "leftTOF (%.2f), left (%.2f), rightTOF (%.2f), right (%.2f), ", H.leftTOF.getDistance(DistanceUnit.INCH), H.leftRange.getDistance(DistanceUnit.INCH), H.rightTOF.getDistance(DistanceUnit.INCH), H.rightRange.getDistance(DistanceUnit.INCH));
             telemetry.addData("Motors", "front-left (%.2f), front-right (%.2f), rear-right (%.2f), rear-left (%.2f)", H.driveMotor[0].getPower(), H.driveMotor[1].getPower(), H.driveMotor[2].getPower(), H.driveMotor[3].getPower());
-            telemetry.addData("encoders", "front-left (%d), front-right (%d), rear-right (%d), rear-left (%d)", H.driveMotor[0].getCurrentPosition(), H.driveMotor[1].getCurrentPosition(), H.driveMotor[2].getCurrentPosition(), H.driveMotor[3].getCurrentPosition());
+            telemetry.addData("encoders", "front-left (%d), front-right (%d), rear-right (%d), rear-left (%d), launcher (%d)", H.driveMotor[0].getCurrentPosition(), H.driveMotor[1].getCurrentPosition(), H.driveMotor[2].getCurrentPosition(), H.driveMotor[3].getCurrentPosition(), H.launchMotor.getCurrentPosition());
             telemetry.update();
             
         }
         
         pool.shutdownNow();
+        aimBot.end();
         
     }
     
@@ -215,14 +248,13 @@ public class TeleOpV1 extends LinearOpMode {
     }
     
     void launch() {
-        
         H.launchServo.setPosition(H.LAUNCH_SERVO_MAX);
         sleep(H.LAUNCH_SERVO_DELAY);
         H.launchServo.setPosition(H.LAUNCH_SERVO_MIN);
     }
     
     double exponentialScaling(double input) {
-        if (input > H.STICK_DEAD_ZONE) {
+        if (Math.abs(input) > H.STICK_DEAD_ZONE) {
             return Math.signum(input) * ((Math.pow(H.EXP_BASE, Math.abs(input)) - 1) * (1 - H.INITIAL_VALUE) / (H.EXP_BASE - 1) + H.INITIAL_VALUE);
         } else {
             return 0;

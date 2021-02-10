@@ -48,6 +48,7 @@ public class TestProgram extends LinearOpMode {
         
         RobotHardware H = new RobotHardware();
         H.init(hardwareMap);
+        MecanumWheelDriver driver = new MecanumWheelDriver(H);
         
         waitForStart();
         runtime.reset();
@@ -60,9 +61,11 @@ public class TestProgram extends LinearOpMode {
             if (gamepad1.a) {
         
                 if (!button[0]) {
-                    H.launchServo.setPosition(0.17);
-                    sleep(100);
-                    H.launchServo.setPosition(0.02);
+                    driver.setMoveInches(90, 50, 1, 0);
+                    driver.MoveInches();
+                    //H.launchServo.setPosition(0.17);
+                    //sleep(100);
+                    //H.launchServo.setPosition(0.02);
                     button[0] = true;
             
                 }

@@ -76,15 +76,15 @@ public class MecanumWheelDriver implements Runnable {
 
     public boolean stop;
 
-    private final double COUNTS_PER_REVOLUTION = 288;
+    private final double COUNTS_PER_REVOLUTION = 1120;
     private final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
     //final double ROBOT_DIAMETER_INCHES = 23;
-    final double COUNTS_PER_INCH = COUNTS_PER_REVOLUTION / (WHEEL_DIAMETER_INCHES * 3.14159);
+    final double COUNTS_PER_INCH = COUNTS_PER_REVOLUTION / (WHEEL_DIAMETER_INCHES * Math.PI);
     //final double COUNTS_PER_DEGREE = ((ROBOT_DIAMETER_INCHES * 3.14159) / 360) * COUNTS_PER_INCH;
 
     private final double turnAccrate = 1;
     private double speedmin = 0.25;
-    private int rampDownAngl = 45;
+    private int rampDownAngl = 40;
     boolean selfcorrect = true;
 
     int LF_RBtarget;
@@ -359,13 +359,12 @@ public class MecanumWheelDriver implements Runnable {
 
         if (Math.abs(cosAngle) > Math.abs(sinAngle)) {   //scale the motor's speed so that at least one of them = 1
             multiplier = 1 / Math.abs(cosAngle);
-            LF_RB = multiplier * cosAngle;
-            RF_LB = multiplier * sinAngle;
         } else {
             multiplier = 1 / Math.abs(sinAngle);
-            LF_RB = multiplier * cosAngle;
-            RF_LB = multiplier * sinAngle;
         }
+        
+        LF_RB = multiplier * cosAngle;
+        RF_LB = multiplier * sinAngle;
 
         leftfrontStartPos = H.driveMotor[0].getCurrentPosition();
         rightfrontStartPos = H.driveMotor[1].getCurrentPosition();
