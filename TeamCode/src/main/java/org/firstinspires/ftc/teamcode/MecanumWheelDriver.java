@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
@@ -76,15 +77,16 @@ public class MecanumWheelDriver implements Runnable {
 
     public boolean stop;
 
-    private final double COUNTS_PER_REVOLUTION = 1120;
+    private final double COUNTS_PER_REVOLUTION = 560;
     private final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
     //final double ROBOT_DIAMETER_INCHES = 23;
     final double COUNTS_PER_INCH = COUNTS_PER_REVOLUTION / (WHEEL_DIAMETER_INCHES * Math.PI);
     //final double COUNTS_PER_DEGREE = ((ROBOT_DIAMETER_INCHES * 3.14159) / 360) * COUNTS_PER_INCH;
 
     private final double turnAccrate = 1;
-    private double speedmin = 0.25;
-    private int rampDownAngl = 40;
+    private double speedmin = 0.1;
+    private int rampDownAngl = 55;
+    private final double selfCorrectAngle = 15;
     boolean selfcorrect = true;
 
     int LF_RBtarget;
@@ -96,10 +98,12 @@ public class MecanumWheelDriver implements Runnable {
     int rightbackStartPos;
 
     RobotHardware H;
+    LinearOpMode opMode;
 
-    MecanumWheelDriver(RobotHardware H) {
+    MecanumWheelDriver(RobotHardware H, LinearOpMode opMode) {
 
         this.H = H;
+        this.opMode = opMode;
 
     }
 
@@ -374,24 +378,24 @@ public class MecanumWheelDriver implements Runnable {
         LF_RBtarget = (int)(LF_RB * inches * COUNTS_PER_INCH);
         RF_LBtarget = (int)(RF_LB * inches * COUNTS_PER_INCH);
 
-        H.driveMotor[0].  setTargetPosition(leftfrontStartPos + LF_RBtarget);
-        H.driveMotor[1]. setTargetPosition(rightfrontStartPos + RF_LBtarget);
-        H.driveMotor[2].  setTargetPosition(rightbackStartPos + LF_RBtarget);
-        H.driveMotor[3].   setTargetPosition(leftbackStartPos + RF_LBtarget);
+        H.driveMotor[0].setTargetPosition(leftfrontStartPos + LF_RBtarget);
+        H.driveMotor[1].setTargetPosition(rightfrontStartPos + RF_LBtarget);
+        H.driveMotor[2].setTargetPosition(rightbackStartPos + LF_RBtarget);
+        H.driveMotor[3].setTargetPosition(leftbackStartPos + RF_LBtarget);
 
-        H.driveMotor[0].  setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        H.driveMotor[1]. setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        H.driveMotor[2].   setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        H.driveMotor[3].  setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[0].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[1].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[2].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[3].setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        while (H.driveMotor[0].isBusy() && H.driveMotor[1].isBusy() && H.driveMotor[2].isBusy() && H.driveMotor[3].isBusy() && !stop) {
+        while (H.driveMotor[0].isBusy() && H.driveMotor[1].isBusy() && H.driveMotor[2].isBusy() && H.driveMotor[3].isBusy() && !stop && opMode.opModeIsActive()) {
             if (selfcorrect) {
                 offset = FindDegOffset(H.getheading(), agl_frwd + 180);
 
-                leftfrontPower = LF_RB * speed - offset / 45;
-                rightfrontPower = RF_LB * speed + offset / 45;
-                leftbackPower = RF_LB * speed - offset / 45;
-                rightbackPower = LF_RB * speed + offset / 45;
+                leftfrontPower = LF_RB * speed - offset / selfCorrectAngle;
+                rightfrontPower = RF_LB * speed + offset / selfCorrectAngle;
+                leftbackPower = RF_LB * speed - offset / selfCorrectAngle;
+                rightbackPower = LF_RB * speed + offset / selfCorrectAngle;
 
                 if (LF_RB > RF_LB) {
                     if (offset > 0) {
@@ -423,15 +427,15 @@ public class MecanumWheelDriver implements Runnable {
 
         }
 
-        H.driveMotor[0].  setPower(0);
-        H.driveMotor[1]. setPower(0);
-        H.driveMotor[2].   setPower(0);
-        H.driveMotor[3].  setPower(0);
+        H.driveMotor[0].setPower(0);
+        H.driveMotor[1].setPower(0);
+        H.driveMotor[2].setPower(0);
+        H.driveMotor[3].setPower(0);
 
-        H.driveMotor[0].  setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        H.driveMotor[1]. setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        H.driveMotor[2].   setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        H.driveMotor[3].  setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[0].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[1].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[2].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[3].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
     }
 
@@ -470,34 +474,87 @@ public class MecanumWheelDriver implements Runnable {
          */
 
         double speed;
-        double offset;
+        int offset;
         double heading = H.getheading();
         double Target;
-        int drect;
+        double drect;
 
         if (toDegree) {
             Target = Degrees + 180;
         } else {
             Target = addDegree(heading, Degrees);
         }
-
-        do {
+        
+        final double startOffset = FindDegOffset(heading, Target);
+        final double clicks_per_degree = 9.2222222;
+    
+        leftfrontStartPos = H.driveMotor[0].getCurrentPosition();
+        rightfrontStartPos = H.driveMotor[1].getCurrentPosition();
+        rightbackStartPos = H.driveMotor[2].getCurrentPosition();
+        leftbackStartPos = H.driveMotor[3].getCurrentPosition();
+    
+        offset = (int)(startOffset * clicks_per_degree);
+    
+        H.driveMotor[0].setTargetPosition(leftfrontStartPos + offset);
+        H.driveMotor[1].setTargetPosition(rightfrontStartPos - offset);
+        H.driveMotor[2].setTargetPosition(rightbackStartPos - offset);
+        H.driveMotor[3].setTargetPosition(leftbackStartPos + offset);
+        
+        H.driveMotor[0].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[1].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[2].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        H.driveMotor[3].setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        
+        H.driveMotor[0].setPower(MaxSpeed);
+        H.driveMotor[1].setPower(MaxSpeed);
+        H.driveMotor[2].setPower(MaxSpeed);
+        H.driveMotor[3].setPower(MaxSpeed);
+    
+        while ((H.driveMotor[0].isBusy() || H.driveMotor[1].isBusy() || H.driveMotor[2].isBusy() || H.driveMotor[3].isBusy()) && !stop && opMode.opModeIsActive()) {
+    
+            leftfrontStartPos = H.driveMotor[0].getCurrentPosition();
+            rightfrontStartPos = H.driveMotor[1].getCurrentPosition();
+            rightbackStartPos = H.driveMotor[2].getCurrentPosition();
+            leftbackStartPos = H.driveMotor[3].getCurrentPosition();
+            
+            heading = H.getheading();
+    
+            offset = (int)(FindDegOffset(heading, Target) * clicks_per_degree);
+    
+            H.driveMotor[0].setTargetPosition(leftfrontStartPos + offset);
+            H.driveMotor[1].setTargetPosition(rightfrontStartPos - offset);
+            H.driveMotor[2].setTargetPosition(rightbackStartPos - offset);
+            H.driveMotor[3].setTargetPosition(leftbackStartPos + offset);
+        
+        }
+    
+        H.driveMotor[0].setPower(0);
+        H.driveMotor[1].setPower(0);
+        H.driveMotor[2].setPower(0);
+        H.driveMotor[3].setPower(0);
+    
+        H.driveMotor[0].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[1].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[2].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        H.driveMotor[3].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        
+        /*do {
             heading = H.getheading();
             offset = FindDegOffset(heading, Target);
-            speed = Range.clip( Math.abs(offset / rampDownAngl), speedmin, MaxSpeed);
-            drect = (int)Range.clip(offset * 100, -1, 1);
+            speed = Range.clip( (Math.exp(0.1 * Math.abs(offset))-1)/(startOffset), speedmin, MaxSpeed);
+            drect = Math.signum(offset);//Range.clip(offset, -1, 1);
+            
+            H.driveMotor[0].setPower(speed * drect);
+            H.driveMotor[1].setPower(-speed * drect);
+            H.driveMotor[2].setPower(-speed * drect);
+            H.driveMotor[3].setPower(speed * drect);
 
-            H.driveMotor[0].  setPower(-speed * drect);
-            H.driveMotor[1]. setPower(speed * drect);
-            H.driveMotor[2].  setPower(speed * drect);
-            H.driveMotor[3].   setPower(-speed * drect);
+        } while (Math.abs(offset) > turnAccrate && !stop && opMode.opModeIsActive());
 
-        } while (Math.abs(offset) > turnAccrate && !stop);
-
-        H.driveMotor[0].  setPower(0);
-        H.driveMotor[1]. setPower(0);
-        H.driveMotor[2].  setPower(0);
-        H.driveMotor[3].   setPower(0);
+        H.driveMotor[0].setPower(0);
+        H.driveMotor[1].setPower(0);
+        H.driveMotor[2].setPower(0);
+        H.driveMotor[3].setPower(0);
 
         /*
         int Lefttarget = (int)(Degrees * COUNTS_PER_DEGREE);

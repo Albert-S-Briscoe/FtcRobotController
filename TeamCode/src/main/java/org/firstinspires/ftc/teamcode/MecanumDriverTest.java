@@ -58,7 +58,7 @@ public class MecanumDriverTest extends LinearOpMode {
         telemetry.update();
 
         RobotHardware H = new RobotHardware();
-        MecanumWheelDriver drive = new MecanumWheelDriver(H);
+        MecanumWheelDriver drive = new MecanumWheelDriver(H, this);
         H.init(hardwareMap);
         drive.RunWithEncoders(true);
         //MecanumParallelDrive a = new MecanumParallelDrive(hardwareMap);

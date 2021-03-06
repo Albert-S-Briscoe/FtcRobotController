@@ -37,7 +37,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class TestProgram extends LinearOpMode {
     
-    boolean[] button = {false,false,false};
+    boolean[] button = {false,false,false,false};
     boolean wheelsOn = false;
     private ElapsedTime runtime = new ElapsedTime();
     
@@ -48,7 +48,7 @@ public class TestProgram extends LinearOpMode {
         
         RobotHardware H = new RobotHardware();
         H.init(hardwareMap);
-        MecanumWheelDriver driver = new MecanumWheelDriver(H);
+        MecanumWheelDriver driver = new MecanumWheelDriver(H, this);
         
         waitForStart();
         runtime.reset();
@@ -61,7 +61,7 @@ public class TestProgram extends LinearOpMode {
             if (gamepad1.a) {
         
                 if (!button[0]) {
-                    driver.setMoveInches(90, 50, 1, 0);
+                    driver.setMoveInches(180, 50, 1, 180);
                     driver.MoveInches();
                     //H.launchServo.setPosition(0.17);
                     //sleep(100);
@@ -116,6 +116,24 @@ public class TestProgram extends LinearOpMode {
                 button[2] = false;
         
             }
+    
+            if (gamepad1.y) {
+        
+                if (!button[3]) {
+                    driver.setrotate(90, 1, true);
+                    driver.rotate();
+                    //H.launchServo.setPosition(0.17);
+                    //sleep(100);
+                    //H.launchServo.setPosition(0.02);
+                    button[3] = true;
+            
+                }
+        
+            } else {
+        
+                button[3] = false;
+        
+            }
             
             if (wheelsOn) {
                 //H.driveMotor[0].setPower(1);
@@ -127,6 +145,7 @@ public class TestProgram extends LinearOpMode {
             
             telemetry.addData("Time: " , runtime.seconds());
             telemetry.addData("Pos: " , (gamepad1.left_stick_x+1)/2);
+            telemetry.addData("deg:", H.getheading());
             telemetry.update();
         }
         

@@ -33,7 +33,7 @@ public class AimBot{
     final float quadField = 36 * mmPerInch;
     final float ERROR_THRESHOLD = 6;
     final float CAMERA_OFFSET = 1.5f;
-    final float SIDEWAYS_DISTANCE_MULTIPLIER = 1.25f;
+    final float SIDEWAYS_DISTANCE_MULTIPLIER = 1.3f;
     
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     
@@ -63,19 +63,19 @@ public class AimBot{
     
     public void activate() {
     
-        H.launchMotor.setPower(1);
+        H.launchMotor.setPower(H.LAUNCH_MAX_SPEED);
         MWD.setrotate(0, 1, true);
         MWD.rotate();
         Float[] pos = getPos();
         if (redSide) {
-            MWD.setMoveInches(90, (-36 - pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 0);
+            MWD.setMoveInches(90, (36 + pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 180);
         } else {
-            MWD.setMoveInches(90, (36 - pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 0);
+            MWD.setMoveInches(-90, (36 - pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 180);
         }
         MWD.MoveInches();
         pos = getPos();
         if (pos[1] != null) {
-            MWD.setMoveInches(0, 9 - pos[1], 1, 0);
+            MWD.setMoveInches(180, 9 - pos[1], 1, 180);
             MWD.MoveInches();
         }
         MWD.setrotate(0, 1, true);
@@ -196,10 +196,10 @@ public class AimBot{
                 float X1;
                 float X2 = translation.get(1) / mmPerInch + CAMERA_OFFSET;
                 if (redSide) {
-                     X1 = (float)(H.rightTOF.getDistance(DistanceUnit.INCH) - 72 + 8.5 + CAMERA_OFFSET);
+                     X1 = (float)(H.rightTOF.getDistance(DistanceUnit.INCH) - 72 + 9 + CAMERA_OFFSET);
                     robotPos[0] = avgOrIgnore(X1, X2, -36);
                 } else {
-                    X1 = (float)(72 - H.leftTOF.getDistance(DistanceUnit.INCH) - 8.5 + CAMERA_OFFSET);
+                    X1 = (float)(72 - H.leftTOF.getDistance(DistanceUnit.INCH) - 9 + CAMERA_OFFSET);
                     robotPos[0] = avgOrIgnore(X1, X2, 36);
                 }
                 

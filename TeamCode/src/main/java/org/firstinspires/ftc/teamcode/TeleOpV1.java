@@ -27,7 +27,7 @@ public class TeleOpV1 extends LinearOpMode {
         
         ////////////////////////////// Init //////////////////////////////
         
-        MecanumWheelDriver drive = new MecanumWheelDriver(H);
+        MecanumWheelDriver drive = new MecanumWheelDriver(H, this);
         ElapsedTime runtime = new ElapsedTime();
         ExecutorService pool = Executors.newFixedThreadPool(1);
         H.init(hardwareMap);
@@ -71,15 +71,15 @@ public class TeleOpV1 extends LinearOpMode {
             
             ////////////////////////////// Set Variables //////////////////////////////
             
-            y = -gamepad1.left_stick_y;
-            x = gamepad1.left_stick_x;
+            y = gamepad1.left_stick_y;
+            x = -gamepad1.left_stick_x;
             
             if (toggle[2]) {
                 
-                rotateRadius = exponentialScaling(Range.clip(Math.hypot(gamepad1.right_stick_x, (-gamepad1.right_stick_y)), 0, 1));
+                rotateRadius = exponentialScaling(Range.clip(Math.hypot(-gamepad1.right_stick_x, gamepad1.right_stick_y), 0, 1));
                 
                 if (rotateRadius > 0.2) {
-                    target = drive.addDegree(Math.toDegrees(Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x)), -90);
+                    target = drive.addDegree(Math.toDegrees(Math.atan2(gamepad1.right_stick_y, -gamepad1.right_stick_x)), -90);
                     rotate = drive.POVRotate(target + agl_frwd, rotateRadius);
                 } else {
                     rotate = 0;
@@ -87,7 +87,7 @@ public class TeleOpV1 extends LinearOpMode {
                 
             } else {
                 
-                rotate = exponentialScaling(Range.clip(gamepad1.right_stick_x, -1, 1));
+                rotate = exponentialScaling(Range.clip(-gamepad1.right_stick_x, -1, 1));
                 
             }
             
@@ -199,7 +199,7 @@ public class TeleOpV1 extends LinearOpMode {
                 
             }
     
-            pos = aimBot.getPos();
+            /*pos = aimBot.getPos();
             telemetry.addData("rotate", rotate);
             telemetry.addData("radius", radius);
             telemetry.addData("angle", Math.toDegrees(angle));
@@ -208,6 +208,7 @@ public class TeleOpV1 extends LinearOpMode {
             if (pos[1] != null) telemetry.addData("Pos", "Y (%.1f)", pos[1]);
             telemetry.addData("Ranges", "leftTOF (%.2f), left (%.2f), rightTOF (%.2f), right (%.2f), ", H.leftTOF.getDistance(DistanceUnit.INCH), H.leftRange.getDistance(DistanceUnit.INCH), H.rightTOF.getDistance(DistanceUnit.INCH), H.rightRange.getDistance(DistanceUnit.INCH));
             telemetry.addData("Motors", "front-left (%.2f), front-right (%.2f), rear-right (%.2f), rear-left (%.2f)", H.driveMotor[0].getPower(), H.driveMotor[1].getPower(), H.driveMotor[2].getPower(), H.driveMotor[3].getPower());
+            */
             telemetry.addData("encoders", "front-left (%d), front-right (%d), rear-right (%d), rear-left (%d), launcher (%d)", H.driveMotor[0].getCurrentPosition(), H.driveMotor[1].getCurrentPosition(), H.driveMotor[2].getCurrentPosition(), H.driveMotor[3].getCurrentPosition(), H.launchMotor.getCurrentPosition());
             telemetry.update();
             
@@ -240,7 +241,7 @@ public class TeleOpV1 extends LinearOpMode {
     void launcherLive(boolean active) {
         
         if (active) {
-            H.launchMotor.setPower(1);
+            H.launchMotor.setPower(H.LAUNCH_MAX_SPEED);
         } else {
             H.launchMotor.setPower(0);
         }
