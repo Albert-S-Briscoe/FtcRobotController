@@ -32,7 +32,7 @@ public class AimBot{
     final float halfField = 72 * mmPerInch;
     final float quadField = 36 * mmPerInch;
     final float ERROR_THRESHOLD = 6;
-    final float CAMERA_OFFSET = 1.5f;
+    final float CAMERA_OFFSET = 6f;
     final float SIDEWAYS_DISTANCE_MULTIPLIER = 1.3f;
     
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
@@ -75,7 +75,7 @@ public class AimBot{
         MWD.MoveInches();
         pos = getPos();
         if (pos[1] != null) {
-            MWD.setMoveInches(180, 9 - pos[1], 1, 180);
+            MWD.setMoveInches(180, 6 - pos[1], 1, 180);
             MWD.MoveInches();
         }
         MWD.setrotate(0, 1, true);

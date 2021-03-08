@@ -80,13 +80,13 @@ public class autonomous extends LinearOpMode {
         waitForStart();
         
         if(opModeIsActive()) {
-            drive.setMoveInches(180, 66, 1, 180);
+            drive.setMoveInches(180, 54, 1, 180);
             pool.execute(drive);
             waitForMoveDone();
         }
     
         if(opModeIsActive()) {
-            drive.setMoveInches(-90, 16, 1, 180);
+            drive.setMoveInches(90, 12, 1, 180);
             pool.execute(drive);
             waitForMoveDone();
         }
@@ -98,13 +98,13 @@ public class autonomous extends LinearOpMode {
         }
     
         if(opModeIsActive()) {
-            drive.setMoveInches(180, 12, 1, 180);
+            drive.setMoveInches(180, 14, 1, 180);
             pool.execute(drive);
             waitForMoveDone();
         }
     
         if(opModeIsActive()) {
-            drive.setrotate(180, 1, true);
+            drive.setrotate(0, 1, true);
             pool.execute(drive);
             waitForMoveDone();
         }

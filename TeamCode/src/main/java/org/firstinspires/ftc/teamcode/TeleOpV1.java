@@ -55,7 +55,7 @@ public class TeleOpV1 extends LinearOpMode {
         double target;
         double rotateRadius;
         
-        double agl_frwd = 180;
+        double agl_frwd = -90;
         double heading = 0;
     
         double launchStartTime = 0;
