@@ -35,10 +35,10 @@ public class TeleOpV1 extends LinearOpMode {
         
         ////////////////////////////// Init Variables //////////////////////////////
         
-        double frontLeftPower;
-        double frontRightPower;
-        double rearLeftPower;
-        double rearRightPower;
+        double frontLeftPower = 0;
+        double frontRightPower = 0;
+        double rearLeftPower = 0;
+        double rearRightPower = 0;
         
         double FL_RR;  //front-left and rear-right motors
         double FR_RL;  //front-right and rear-left motors
@@ -109,17 +109,17 @@ public class TeleOpV1 extends LinearOpMode {
             FL_RR = multiplier * cosAngle;
             FR_RL = multiplier * sinAngle;
             
-            frontLeftPower = FL_RR * radius + rotate; //then add the rotate speed
-            frontRightPower = FR_RL * radius - rotate;
-            rearLeftPower = FR_RL * radius + rotate;
-            rearRightPower = FL_RR * radius - rotate;
+            frontLeftPower += powerFollow(frontLeftPower, FL_RR * radius + rotate); //then add the rotate speed
+            frontRightPower += powerFollow(frontRightPower, FR_RL * radius - rotate);
+            rearLeftPower += powerFollow(rearLeftPower, FR_RL * radius + rotate);
+            rearRightPower += powerFollow(rearRightPower, FL_RR * radius - rotate);
             
             if (Math.abs(stickTotal) > 1) {
                 
-                frontLeftPower = frontLeftPower / stickTotal;
-                frontRightPower = frontRightPower / stickTotal;
-                rearLeftPower = rearLeftPower / stickTotal;
-                rearRightPower = rearRightPower / stickTotal;
+                frontLeftPower /= stickTotal;
+                frontRightPower /= stickTotal;
+                rearLeftPower /= stickTotal;
+                rearRightPower /= stickTotal;
                 
             }
             
@@ -259,6 +259,14 @@ public class TeleOpV1 extends LinearOpMode {
             return Math.signum(input) * ((Math.pow(H.EXP_BASE, Math.abs(input)) - 1) * (1 - H.INITIAL_VALUE) / (H.EXP_BASE - 1) + H.INITIAL_VALUE);
         } else {
             return 0;
+        }
+    }
+    
+    double powerFollow(double currentPower, double goalPower) {
+        if (Math.abs(goalPower - currentPower) >= H.POWER_FOLLOW_INCREMENT) {
+            return Math.signum(goalPower - currentPower) * H.POWER_FOLLOW_INCREMENT;
+        } else {
+            return goalPower - currentPower;
         }
     }
     
