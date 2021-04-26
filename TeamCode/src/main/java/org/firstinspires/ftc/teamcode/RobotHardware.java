@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -44,6 +45,9 @@ public class RobotHardware {
     public final double LAUNCH_REPEAT_DELAY = 0.25;
     public final double LAUNCH_MAX_SPEED = 0.92;
     
+    public final double GRABBER_SERVO_MAX = 0.69;
+    public final double GRABBER_SERVO_MIN = 0.22;
+    
     public final double EXP_BASE = 20;
     public final double INITIAL_VALUE = 0.05;
     public final double STICK_DEAD_ZONE = 0.1;
@@ -58,6 +62,7 @@ public class RobotHardware {
     public DistanceSensor rightRange;
     public Rev2mDistanceSensor leftTOF;
     public Rev2mDistanceSensor rightTOF;
+    public AnalogInput armAngle;
     public BNO055IMU      imu;
     public Orientation    angles;
     public WebcamName     webcam;
@@ -68,6 +73,8 @@ public class RobotHardware {
     public DcMotor        collectorMotor;
     public DcMotor[]      driveMotor = new DcMotor[4];
     public Servo          launchServo;
+    public Servo          armServo;
+    public Servo          grabberServo;
 
     public void init(HardwareMap HM) {
         
@@ -82,11 +89,14 @@ public class RobotHardware {
         launchMotor   = HM.get(DcMotor.class, "Launch_Motor");
         collectorMotor   = HM.get(DcMotor.class, "Collector_Motor");
 
-        launchServo = HM.get(Servo.class, "Actuator");
+        launchServo = HM.get(Servo.class, "Launch_Servo");
+        armServo = HM.get(Servo.class, "Arm_Servo");
+        grabberServo = HM.get(Servo.class, "Grabber_Servo");
     
         webcam = HM.get(WebcamName.class, "Webcam 1");
         leftRange = HM.get(DistanceSensor.class, "L_Range");
         rightRange = HM.get(DistanceSensor.class, "R_Range");
+        armAngle = HM.get(AnalogInput.class, "Arm_Angle");
         imu = HM.get(BNO055IMU.class, "imu");
 
         ////////////////////////////// Parameters //////////////////////////////

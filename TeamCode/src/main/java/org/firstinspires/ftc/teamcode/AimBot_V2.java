@@ -21,19 +21,20 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-public class AimBot{
+public class AimBot_V2 {
     
     static boolean redSide = true;
     public static int step = 0; // 0 || 3 = rotate, 1 = move x, 2 = move y, 4 = launch, 5 = disable
     public static boolean first = true;
+    double launchAngle = 0;
     
     final float mmPerInch = 25.4f;
     final float mmTargetHeight = (6) * mmPerInch;
     final float halfField = 72 * mmPerInch;
     final float quadField = 36 * mmPerInch;
     final float ERROR_THRESHOLD = 6;
-    final float CAMERA_OFFSET = 6f;
-    final float ROBOT_OFFSET = -3.15f;
+    final float CAMERA_OFFSET = 1.5f;
+    final float ROBOT_OFFSET = 3.15f;
     final float SIDEWAYS_DISTANCE_MULTIPLIER = 1.3f;
     
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
@@ -51,7 +52,7 @@ public class AimBot{
     ExecutorService pool;
     LinearOpMode TeleOp;
 
-    AimBot (RobotHardware H, MecanumWheelDriver MWD, ExecutorService pool, LinearOpMode TeleOp) {
+    AimBot_V2(RobotHardware H, MecanumWheelDriver MWD, ExecutorService pool, LinearOpMode TeleOp) {
         
         this.MWD = MWD;
         this.H = H;
@@ -65,96 +66,32 @@ public class AimBot{
     public void activate() {
     
         H.launchMotor.setPower(H.LAUNCH_MAX_SPEED);
-        MWD.setrotate((int)ROBOT_OFFSET, 1, true);
-        MWD.rotate();
+    
         Float[] pos = getPos();
-        if (redSide) {
-            MWD.setMoveInches(90, (36 + pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 180);
-        } else {
-            MWD.setMoveInches(-90, (36 - pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 180);
+        if (pos[0] == null) {
+            MWD.setrotate(0, 1, true);
+            MWD.rotate();
+            TeleOp.sleep(100);
         }
-        MWD.MoveInches();
+        
         pos = getPos();
-        if (pos[1] != null) {
-            MWD.setMoveInches(180, 6 - pos[1], 1, 180);
-            MWD.MoveInches();
+        if (pos[0] != null) {
+            if (pos[1] == null) {
+                launchAngle = Math.atan((pos[0] + 36)/(72)) - ROBOT_OFFSET;
+            } else {
+                launchAngle = Math.atan((pos[0] + 36)/(72 - pos[1])) - ROBOT_OFFSET;
+            }
         }
-        MWD.setrotate((int)ROBOT_OFFSET, 1, true);
+    
+        MWD.setrotate((int)launchAngle, 1, true);
         MWD.rotate();
-        for (int i = 4; i > 0; i--) {
+        TeleOp.sleep(400);
+        
+        for (int i = 3; i > 0; i--) {
             launch();
-            TeleOp.sleep(200);
+            TeleOp.sleep(160);
         }
         H.launchMotor.setPower(0);
-    
-    }
-    
-    public void activate1() {
-    
-        Float[] pos = getPos();
-        switch (step) {
-            case 0:
-            case 3:
-                if (MWD.moveDone) {
-                    first = true;
-                    MWD.moveDone = false;
-                    step++;
-                    break;
-                }
-                if (first) {
-                    MWD.setrotate(0, 1, true);
-                    pool.execute(MWD);
-                    first = false;
-                }
-                break;
-            case 1:
-                if (MWD.moveDone) {
-                    first = true;
-                    MWD.moveDone = false;
-                    step++;
-                    break;
-                }
-                if (first) {
-                    if (redSide) {
-                        MWD.setMoveInches(90, (-36 - pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 0);
-                    } else {
-                        MWD.setMoveInches(90, (36 - pos[0]) * SIDEWAYS_DISTANCE_MULTIPLIER, 1, 0);
-                    }
-                    pool.execute(MWD);
-                    first = false;
-                }
-                /*if (redSide) {
-                    MWD.changeTargetInches(-36 - pos[0], false);
-                } else {
-                    MWD.changeTargetInches(36 - pos[0], false);
-                }*/
-                break;
-            case 2:
-                if (MWD.moveDone) {
-                    first = true;
-                    MWD.moveDone = false;
-                    step++;
-                    break;
-                }
-                if (first) {
-                    if (pos[1] != null) {
-                        MWD.setMoveInches(0, 9 - pos[1], 1, 0);
-                    }
-                    pool.execute(MWD);
-                    first = false;
-                }
-                //MWD.changeTargetInches(9 - pos[1], false);
-                break;
-            case 4:
-                for (int i = 3; i > 0; i--) {
-                    launch();
-                    TeleOp.sleep(160);
-                }
-                break;
-            default:
-                break;
-            
-        }
     
     }
     

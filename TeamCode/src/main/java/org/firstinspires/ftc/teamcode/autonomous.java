@@ -72,42 +72,101 @@ public class autonomous extends LinearOpMode {
         H.init(hardwareMap);
     
         AimBot aimBot = new AimBot(H, drive, pool, this);
+        
+        H.grabberServo.setPosition(H.GRABBER_SERVO_MIN);
         //Tfod.init();
         
         //byte output = 0;
         //boolean button = false;
         
         waitForStart();
+        while (opModeIsActive() && Math.abs(1.6 - H.armAngle.getVoltage()) > 0.08) {
+            H.armServo.setPosition(Range.clip(6 * (1.6 - H.armAngle.getVoltage()) + 0.5, 0, 1));
+        }
+        H.armServo.setPosition(0.5);
         
         if(opModeIsActive()) {
-            drive.setMoveInches(180, 54, 1, 180);
+            drive.setMoveInches(180, 59, 0.8, 180);
             pool.execute(drive);
             waitForMoveDone();
         }
     
         if(opModeIsActive()) {
-            drive.setMoveInches(90, 12, 1, 180);
+            drive.setMoveInches(90, 12, 0.8, 180);
             pool.execute(drive);
             waitForMoveDone();
         }
         
         if (opModeIsActive()) {
             aimBot.activate();
-            sleep(10);
-            aimBot.disable();
         }
     
-        if(opModeIsActive()) {
-            drive.setMoveInches(180, 14, 1, 180);
+        if (opModeIsActive()) {
+            drive.setMoveInches(180, 24, 0.8, 180);
             pool.execute(drive);
             waitForMoveDone();
         }
+    
+        while (opModeIsActive() && Math.abs(0.33 - H.armAngle.getVoltage()) > 0.03) {
+            H.armServo.setPosition(Range.clip(6 * (0.343 - H.armAngle.getVoltage()) + 0.5, 0, 1));
+        }
+        H.armServo.setPosition(0.5);
+        
+        if (opModeIsActive()) {
+            H.grabberServo.setPosition(H.GRABBER_SERVO_MAX);
+            sleep(500);
+        }
+    
+        if (opModeIsActive()) {
+            drive.setMoveInches(0, 10, 0.8, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+        }
+        
+    
+       /*
+    
+        if(opModeIsActive()) {
+            H.collectorMotor.setPower(1);
+            drive.setMoveInches(-90, 10, 1, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+            drive.setMoveInches(0, 10, 1, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+        }
+    
+        if(opModeIsActive()) {
+            drive.setMoveInches(0, 16, 0.26, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+        }
+    
+        if(opModeIsActive()) {
+            drive.setMoveInches(180, 26, 1, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+            sleep(1000);
+        }
+    
+        if (opModeIsActive()) {
+            aimBot.activate();
+            sleep(10);
+            aimBot.disable();
+        }
+        */
+        /*if(opModeIsActive()) {
+            drive.setMoveInches(180, 14, 0.8, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+        }*/
     
         if(opModeIsActive()) {
             drive.setrotate(0, 1, true);
             pool.execute(drive);
             waitForMoveDone();
         }
+        
         
         /*while(opModeIsActive()) {
             
