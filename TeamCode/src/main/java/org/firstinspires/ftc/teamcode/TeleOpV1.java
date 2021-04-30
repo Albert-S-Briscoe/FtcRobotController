@@ -67,7 +67,7 @@ public class TeleOpV1 extends LinearOpMode {
     
         double launchStartTime = 0;
         
-        int armPosition = 2;
+        int armPosition = 0;
         
         Float[] pos;
         

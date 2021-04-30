@@ -34,20 +34,15 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-@Autonomous(name="Autonomous Blue", group="Linear Opmode")
+@Autonomous(name="Autonomous", group="Linear Opmode")
 public class autonomous extends LinearOpMode {
 
     private static final String VUFORIA_KEY = "AXfJetz/////AAABmfTftTQRKUq2u+iCzbuFm2wKhp5/qubTF+6xF9VBwMBiVi2lCwJbNrIAVofnUKke4/MjFtZROHGeelAgbQx6MjYX+qdX4vRB5z2PboepftoqvoZy3irQKQ2aKqNSbpN72hI/tI2wluN0xqC6KThtMURH0EuvUf8VcGDfmuXiA/uP00/2dsYhIMhxBJCmBq0AG5jMWi8MnHJDZwnoYLdcliKB7rvNTUDbf1fzxRzf9QHgB2u+invzPou7q8ncAsD5GdXFfA/CiYmR65JKXDOE0wHoc8FxvrzUIRCQ2geSypo7eY5q/STJvqPmjoj33CQFHl0hKMx05QwwsABdlIZvfLLbjA3VH2HO4dcv+OOoElws";
@@ -63,7 +58,9 @@ public class autonomous extends LinearOpMode {
     private RobotHardware       H        = new RobotHardware();
     private MecanumWheelDriver  drive    = new MecanumWheelDriver(H, this);
     private ExecutorService     pool     = Executors.newFixedThreadPool(1);
-    private RingDetector        Tfod     = new RingDetector(H, pool, this);
+    private AimBot              aimBot;
+    
+    private int targetZone = -1;
     
 
     @Override
@@ -71,13 +68,10 @@ public class autonomous extends LinearOpMode {
         
         H.init(hardwareMap);
     
-        AimBot aimBot = new AimBot(H, drive, pool, this);
+        aimBot = new AimBot(H, drive, pool, this);
+        RingCounter         ring     = new RingCounter(aimBot.vuforia);
         
         H.grabberServo.setPosition(H.GRABBER_SERVO_MIN);
-        //Tfod.init();
-        
-        //byte output = 0;
-        //boolean button = false;
         
         waitForStart();
         while (opModeIsActive() && Math.abs(1.6 - H.armAngle.getVoltage()) > 0.08) {
@@ -85,45 +79,110 @@ public class autonomous extends LinearOpMode {
         }
         H.armServo.setPosition(0.5);
         
+        targetZone = ring.count();
+        
+        driveAndLaunch();
+        
+        switch (targetZone) {
+            case 0:
+                if (opModeIsActive()) {
+                    drive.setMoveInches(180, 22, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+                if(opModeIsActive()) {
+                    drive.setrotate(-90, 1, true);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+    
+                if (opModeIsActive()) {
+                    drive.setMoveInches(180, 12, 0.8, -90);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+                
+                dropGoal();
+    
+                if (opModeIsActive()) {
+                    drive.setMoveInches(0, 10, 0.8, -90);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+                if(opModeIsActive()) {
+                    drive.setrotate(0, 1, true);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+                
+                /*if (opModeIsActive()) {
+                    drive.setMoveInches(0, 40, 0.8, 0);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }*/
+                
+                break;
+            case 1:
+                
+                if (opModeIsActive()) {
+                    drive.setMoveInches(180, 33, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+                if (opModeIsActive()) {
+                    drive.setMoveInches(-90, 10, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+                
+                dropGoal();
+
+                if (opModeIsActive()) {
+                    drive.setMoveInches(0, 19, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+                break;
+            case 4:
+    
+                if (opModeIsActive()) {
+                    drive.setMoveInches(90, 20, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+                if (opModeIsActive()) {
+                    drive.setMoveInches(180, 54, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+                dropGoal();
+    
+                if (opModeIsActive()) {
+                    drive.setMoveInches(0, 40, 0.8, 180);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+    
+                if(opModeIsActive()) {
+                    drive.setrotate(0, 1, true);
+                    pool.execute(drive);
+                    waitForMoveDone();
+                }
+                
+        }
+    
         if(opModeIsActive()) {
-            drive.setMoveInches(180, 59, 0.8, 180);
-            pool.execute(drive);
-            waitForMoveDone();
-        }
-    
-        if(opModeIsActive()) {
-            drive.setMoveInches(90, 12, 0.8, 180);
+            drive.setrotate(0, 1, true);
             pool.execute(drive);
             waitForMoveDone();
         }
         
-        if (opModeIsActive()) {
-            aimBot.activate();
-        }
-    
-        if (opModeIsActive()) {
-            drive.setMoveInches(180, 24, 0.8, 180);
-            pool.execute(drive);
-            waitForMoveDone();
-        }
-    
-        while (opModeIsActive() && Math.abs(0.33 - H.armAngle.getVoltage()) > 0.03) {
-            H.armServo.setPosition(Range.clip(6 * (0.343 - H.armAngle.getVoltage()) + 0.5, 0, 1));
-        }
-        H.armServo.setPosition(0.5);
-        
-        if (opModeIsActive()) {
-            H.grabberServo.setPosition(H.GRABBER_SERVO_MAX);
-            sleep(500);
-        }
-    
-        if (opModeIsActive()) {
-            drive.setMoveInches(0, 10, 0.8, 180);
-            pool.execute(drive);
-            waitForMoveDone();
-        }
-        
-    
        /*
     
         if(opModeIsActive()) {
@@ -161,11 +220,7 @@ public class autonomous extends LinearOpMode {
             waitForMoveDone();
         }*/
     
-        if(opModeIsActive()) {
-            drive.setrotate(0, 1, true);
-            pool.execute(drive);
-            waitForMoveDone();
-        }
+        
         
         
         /*while(opModeIsActive()) {
@@ -191,6 +246,40 @@ public class autonomous extends LinearOpMode {
             
             
         }*/
+        
+    }
+    
+    private void driveAndLaunch() {
+    
+        if(opModeIsActive()) {
+            drive.setMoveInches(180, 52, 0.8, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+        }
+    
+        if(opModeIsActive()) {
+            drive.setMoveInches(90, 26, 0.8, 180);
+            pool.execute(drive);
+            waitForMoveDone();
+        }
+    
+        if (opModeIsActive()) {
+            aimBot.activate();
+        }
+        
+    }
+    
+    private void dropGoal() {
+    
+        while (opModeIsActive() && Math.abs(0.33 - H.armAngle.getVoltage()) > 0.03) {
+            H.armServo.setPosition(Range.clip(6 * (0.343 - H.armAngle.getVoltage()) + 0.5, 0, 1));
+        }
+        H.armServo.setPosition(0.5);
+    
+        if (opModeIsActive()) {
+            H.grabberServo.setPosition(H.GRABBER_SERVO_MAX);
+            sleep(500);
+        }
         
     }
     

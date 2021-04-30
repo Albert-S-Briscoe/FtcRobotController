@@ -32,7 +32,7 @@ public class AimBot{
     final float halfField = 72 * mmPerInch;
     final float quadField = 36 * mmPerInch;
     final float ERROR_THRESHOLD = 6;
-    final float CAMERA_OFFSET = 6f;
+    final float CAMERA_OFFSET = 3f;
     final float ROBOT_OFFSET = -3.15f;
     final float SIDEWAYS_DISTANCE_MULTIPLIER = 1.3f;
     
@@ -82,8 +82,8 @@ public class AimBot{
         MWD.setrotate((int)ROBOT_OFFSET, 1, true);
         MWD.rotate();
         for (int i = 4; i > 0; i--) {
+            TeleOp.sleep((int)(H.LAUNCH_REPEAT_DELAY * 1000));
             launch();
-            TeleOp.sleep(200);
         }
         H.launchMotor.setPower(0);
     

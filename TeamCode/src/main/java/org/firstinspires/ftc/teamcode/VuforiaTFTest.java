@@ -29,11 +29,21 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Bitmap;
+import android.util.Log;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.vuforia.Frame;
+import com.vuforia.Image;
+import com.vuforia.PIXEL_FORMAT;
+import com.vuforia.Vuforia;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Consumer;
+import org.firstinspires.ftc.robotcore.external.function.Continuation;
+import org.firstinspires.ftc.robotcore.external.function.ContinuationResult;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -45,6 +55,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,7 +96,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  */
 
 
-@TeleOp(name="TF and Vuforia", group ="Concept")
+@TeleOp(name="Ring counter test", group ="Concept")
 //@Disabled
 public class VuforiaTFTest extends LinearOpMode {
 
@@ -128,13 +139,13 @@ public class VuforiaTFTest extends LinearOpMode {
     private float phoneXRotate    = 0;
     private float phoneYRotate    = 0;
     private float phoneZRotate    = 0;
+    private ByteBuffer buffer;
 
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     private static final String LABEL_FIRST_ELEMENT = "4444444";
     private static final String LABEL_SECOND_ELEMENT = "1";
 
     private TFObjectDetector tfod;
-
 
     @Override public void runOpMode() {
         /*
@@ -156,7 +167,16 @@ public class VuforiaTFTest extends LinearOpMode {
         
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
+    
+        Vuforia.setFrameFormat(PIXEL_FORMAT.RGBA8888, true); //enables RGB565 format for the image
+        vuforia.setFrameQueueCapacity(1); //tells VuforiaLocalizer to only store one frame at a time
+    
+        /*To access the image: you need to iterate through the images of the frame object:*/
+    
+        VuforiaLocalizer.CloseableFrame frame = null;
+        
+        RingCounter ringCounter = new RingCounter(vuforia);
+        
         initTfod();
 
         if (tfod != null) {
@@ -273,7 +293,53 @@ public class VuforiaTFTest extends LinearOpMode {
         targetsUltimateGoal.activate();
         while (!isStopRequested()) {
     
-            if (tfod != null) {
+    
+    
+            /*try {
+                frame = vuforia.getFrameQueue().take(); //takes the frame at the head of the queue
+            } catch (InterruptedException e) {
+        
+            }
+    
+            Image rgb = null;
+            if (frame != null) {
+                long numImages = frame.getNumImages();
+        
+                for (int i = 0; i < numImages; i++) {
+                    if (frame.getImage(i).getFormat() == PIXEL_FORMAT.RGB565) {
+                        rgb = frame.getImage(i);
+                        break;
+                    }//if
+                }//for
+            }
+            if (rgb != null) {
+                telemetry.addData("hight:", rgb.getWidth());
+                buffer = rgb.getPixels();
+                byte pixela = (byte) (0xFF & buffer.get(614399));
+                byte pixelb = (byte) (0xFF & buffer.get(614398));
+                
+                double[] hs = new double[2];
+                
+                hs = ringCounter.getHueAndSaturation( (pixela & 0b11111000 ), ((pixela & 0b00000111)<<5 | (pixelb & 0b11100000)>>3), ((pixelb & 0b00011111)<<3));
+                String pixel1 = toBinary(((0xFF & buffer.get(614399)) << 8)| (0xFF & buffer.get(614398)), 16);
+                telemetry.addData("pixel color", "R:%s G:%s B:%s", pixel1.substring(0,5),pixel1.substring(5,11),pixel1.substring(11,16));
+                telemetry.addData("pixel hue sat", "hue:%.2f sat:%.2f", hs[0], hs[1]);
+                
+                double[] ga = ringCounter.getHueAndSaturation(0x00,0xFF,0x00);
+                telemetry.addData("pixel1 hue sat", "hue:%.2f sat:%.2f", ga[0], ga[1]);
+                //telemetry.addData("i size:", buffer.);
+                
+            } else {
+                telemetry.addData("image is null", 0);
+            }*/
+    
+            telemetry.addData("Number of rings", ringCounter.count());
+            telemetry.addData("orange pixel count", ringCounter.orangePixels);
+    
+            
+            
+    
+            /*if (tfod != null) {
                 // getUpdatedRecognitions() will return null if no new information is available since
                 // the last time that call was made.
                 List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
@@ -322,12 +388,26 @@ public class VuforiaTFTest extends LinearOpMode {
             }
             else {
                 telemetry.addData("Visible Target", "none");
-            }
+            }*/
             telemetry.update();
         }
 
         // Disable Tracking when we are done;
         targetsUltimateGoal.deactivate();
+    }
+    
+    public static String toBinary(int x, int len) {
+        
+        if (len > 0) {
+            
+            return String.format("%" + len + "s",
+                    
+                    Integer.toBinaryString(x)).replaceAll(" ", "0");
+            
+        }
+        
+        return null;
+        
     }
 
     private void initTfod() {

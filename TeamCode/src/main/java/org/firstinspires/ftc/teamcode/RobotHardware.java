@@ -43,7 +43,7 @@ public class RobotHardware {
     public final double LAUNCH_SERVO_MIN = 0.02;
     public final int LAUNCH_SERVO_DELAY = 100;
     public final double LAUNCH_REPEAT_DELAY = 0.25;
-    public final double LAUNCH_MAX_SPEED = 0.92;
+    public final double LAUNCH_MAX_SPEED = 0.88;
     
     public final double GRABBER_SERVO_MAX = 0.69;
     public final double GRABBER_SERVO_MIN = 0.22;
